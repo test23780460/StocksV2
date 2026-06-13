@@ -4,6 +4,7 @@
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
+create extension if not exists supabase_vault with schema vault;
 
 -- Before enabling the schedule:
 -- 1. Deploy the Edge Function at:

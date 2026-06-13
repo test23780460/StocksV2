@@ -142,6 +142,15 @@ curl -X POST "https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data
   -d '{}'
 ```
 
+The repository also includes `supabase/config.toml`:
+
+```toml
+[functions.collect-market-data]
+verify_jwt = false
+```
+
+JWT verification is disabled only for this Edge Function because Supabase Cron does not sign in as a user. The function still rejects requests unless `x-cron-secret` or `Authorization: Bearer` matches `CRON_SECRET`.
+
 Schedule with Supabase Cron:
 
 ```sql
@@ -250,6 +259,7 @@ The same setup is captured in `supabase/migrations/20260613154000_cron_setup.sql
    - Open Supabase Dashboard -> Edge Functions.
    - Choose Deploy a new function or use CLI:
      `supabase functions deploy collect-market-data --no-verify-jwt`.
+   - Confirm `supabase/config.toml` contains `[functions.collect-market-data] verify_jwt = false`.
    - Confirm the function URL is:
      `https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data`.
 2. Add Edge Function secrets:
@@ -264,7 +274,7 @@ The same setup is captured in `supabase/migrations/20260613154000_cron_setup.sql
    - Provider API keys belong here, not in frontend code.
 3. Enable Supabase Cron:
    - Dashboard -> Database -> Extensions.
-   - Enable `pg_cron` and `pg_net`.
+   - Enable `pg_cron`, `pg_net`, and Supabase Vault (`supabase_vault`).
 4. Create the five-minute schedule:
    - Dashboard -> SQL Editor.
    - Add the same `CRON_SECRET` to Vault:

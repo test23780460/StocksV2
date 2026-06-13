@@ -11,8 +11,9 @@
 - [ ] Confirm RLS is enabled on public tables.
 - [ ] Confirm service-role key is not used in browser code.
 - [ ] Deploy Edge Function `collect-market-data`.
+- [ ] Confirm `supabase/config.toml` has `[functions.collect-market-data] verify_jwt = false`.
 - [ ] Add Edge Function secrets: `CRON_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ALPHA_VANTAGE_API_KEY`, optional `COINGECKO_API_KEY`.
-- [ ] Enable `pg_cron` and `pg_net`.
+- [ ] Enable `pg_cron`, `pg_net`, and `supabase_vault`.
 - [ ] Store `CRON_SECRET` in Supabase Vault for Cron request headers.
 - [ ] Create Supabase Cron schedule `stocks-v2-collect-market-data` with `*/5 * * * *`.
 - [ ] Manually invoke `collect-market-data` and verify Edge Function logs before marking ingestion live.

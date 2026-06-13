@@ -353,8 +353,12 @@ async function saveMarketSnapshot(quotes: Quote[], marketOpen: boolean) {
 
 Deno.serve(async (request) => {
   const started = Date.now();
-  if (request.method === "OPTIONS") return new Response(null, { status: 204 });
-  if (!assertCronSecret(request)) return json({ error: "Unauthorized" }, 401);
+  try {
+    if (request.method === "OPTIONS") return new Response(null, { status: 204 });
+    if (!assertCronSecret(request)) return json({ error: "Unauthorized" }, 401);
+  } catch (error) {
+    return json({ status: "error", message: error instanceof Error ? error.message : String(error) }, 500);
+  }
 
   let runId: string | undefined;
   const failures: Array<{ symbol: string; error: string }> = [];
