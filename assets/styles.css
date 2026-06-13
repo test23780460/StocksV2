@@ -547,6 +547,22 @@ h3 {
   font-size: 0.78rem;
 }
 
+.freshness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.freshness span {
+  padding: 0.24rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+}
+
 .badge {
   min-height: 24px;
   padding: 0.16rem 0.5rem;
@@ -737,6 +753,15 @@ textarea {
 .tabs button.active {
   color: var(--text);
   border-color: rgba(85, 166, 255, 0.58);
+}
+
+.chart-tabs {
+  margin-bottom: 0.8rem;
+}
+
+.chart-tabs .active {
+  border-color: rgba(85, 166, 255, 0.58);
+  color: var(--blue);
 }
 
 .chart-canvas {

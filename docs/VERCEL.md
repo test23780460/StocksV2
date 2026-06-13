@@ -1,34 +1,61 @@
 # Vercel Deployment Notes
 
-This project is Vercel-ready as a static app with serverless API routes.
+This project deploys as a static app plus Vercel serverless API routes.
 
-## Recommended GitHub Repo Name
+## Build settings
 
-GitHub repository names cannot reliably use spaces. Use `Stocks-V2` or `stocks-v2` while displaying the project as "Stocks V2" in the UI and README.
+- Framework preset: Other
+- Install command: `npm install`
+- Build command: `npm run check`
+- Output directory: `.`
 
-## Environment Variables
+## Environment variables
 
-Add these when moving out of Demo Mode:
+Add the variables from `.env.example` in Vercel Project Settings. Required for production live mode:
 
-- `ALPHA_VANTAGE_API_KEY`
-- `COINGECKO_API_KEY`
-- `COINGECKO_DEMO_API_KEY`
-- `FINNHUB_API_KEY`
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `DISCORD_WEBHOOK_URL`
+- `CRON_SECRET`
+- `APP_URL`
+- At least one market provider key, usually `ALPHA_VANTAGE_API_KEY`
+
+Recommended:
+
+- `FINNHUB_API_KEY`
+- `COINGECKO_API_KEY`
+- `MARKET_DATA_PROVIDER=auto`
+- `NEWS_DATA_PROVIDER=auto`
 
 Never expose service-role keys or provider secrets in frontend JavaScript.
 
-See `docs/API_SETUP.md` for the current market-data setup steps.
+## Cron
 
-## Build Settings
+If your Vercel plan supports five-minute cron jobs, configure:
 
-- Framework preset: Other
-- Build command: leave empty
-- Output directory: `.`
-- Install command: leave empty
+```json
+{
+  "path": "/api/ingest/quotes",
+  "schedule": "*/5 * * * *"
+}
+```
 
-The app works without dependency installation. API routes live in `/api`.
+Set the `x-cron-secret` header to `CRON_SECRET` if using an external scheduler. For Vercel Cron without custom headers, prefer the Supabase Cron/Edge Function path documented in the README.
+
+## Verification
+
+After deployment, open:
+
+- `/api/health`
+- `/api/health/database`
+- `/api/health/providers`
+- `/api/health/cron`
+- `/api/markets`
+
+Then verify in the UI:
+
+- Search returns provider results.
+- Refresh disables while loading and updates freshness labels.
+- Account forms reach Supabase Auth.
+- Watchlists sync after sign-in.
+- Admin actions reject non-admin users.

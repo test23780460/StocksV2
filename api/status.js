@@ -1,4 +1,5 @@
 const { createConnectedProvider } = require("../lib/providerContract");
+const { hasSupabaseServerConfig } = require("../lib/supabaseRest");
 
 module.exports = async function handler(req, res) {
   const provider = createConnectedProvider();
@@ -8,6 +9,8 @@ module.exports = async function handler(req, res) {
     mode: services.some((item) => item.status === "Configured") ? "Connected Data" : "Demo Mode",
     generatedAt: new Date().toISOString(),
     message: "Provider keys are checked server-side. Missing services fall back to clearly labeled demo or unavailable data.",
+    marketStatus: await provider.getMarketStatus(),
+    databaseConfigured: hasSupabaseServerConfig(),
     services
   });
 };

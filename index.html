@@ -8,6 +8,18 @@
       content="Stocks V2 is a demo-mode financial market research command center for stocks, crypto, ETFs, indexes, predictions, alerts, and market education."
     />
     <title>Stocks V2 | Market Signal Deck</title>
+    <script>
+      (function () {
+        try {
+          var settings = JSON.parse(localStorage.getItem("stocks-v2:settings") || "{}");
+          var theme = settings.theme || "dark";
+          var systemLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+          if (theme === "light" || (theme === "system" && systemLight)) document.documentElement.classList.add("light");
+        } catch (error) {
+          /* Keep default dark theme. */
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
   <body>
@@ -54,8 +66,8 @@
         <section class="ticker-tape" aria-label="Demo market ticker" id="ticker-tape"></section>
 
         <div class="safety-strip" role="note">
-          Educational market research only. Nothing here is financial advice. Predictions are estimates, not guarantees.
-          Demo values may be delayed, cached, estimated, or unavailable.
+          Educational market research only. Nothing on this platform is financial advice. Market predictions are estimates and are not guarantees.
+          Market data may be delayed, cached, estimated, or unavailable. The platform does not execute trades.
         </div>
 
         <div id="app" tabindex="-1"></div>
@@ -63,7 +75,8 @@
     </div>
 
     <script src="./assets/data.js"></script>
+    <script src="./assets/auth.js"></script>
     <script src="./assets/app.js"></script>
-    <script src="./assets/live-data.js?v=20260613-1"></script>
+    <script src="./assets/live-data.js?v=20260613-2"></script>
   </body>
 </html>
