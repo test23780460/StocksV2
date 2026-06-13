@@ -1,4 +1,4 @@
-project_id = "stocks-v2"
+project_id = "pxhkotgxqxggukiswzxk"
 
 [functions.collect-market-data]
 verify_jwt = false

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node local-server.js",
     "check": "node --check assets/app.js && node --check assets/auth.js && node --check assets/data.js && node --check assets/live-data.js && node --check api/status.js && node --check api/search.js && node --check api/asset.js && node --check api/markets.js && node --check api/admin/jobs.js && node --check api/admin/actions.js && node --check api/ingest/quotes.js && node --check lib/calculations.js && node --check lib/providerContract.js && node --check lib/repository.js && node --check lib/jobs.js",
-    "test": "node --test"
+    "test": "node --test",
+    "setup:supabase": "bash scripts/setup-supabase.sh"
   },
   "keywords": [
     "stocks",
