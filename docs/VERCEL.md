@@ -1,34 +1,65 @@
 # Vercel Deployment Notes
 
-This project is Vercel-ready as a static app with serverless API routes.
+This project deploys as a static app plus normal user-facing Vercel serverless API routes. Scheduled market-data collection is not run by Vercel Cron so the project remains compatible with Vercel Hobby.
 
-## Recommended GitHub Repo Name
+## Build settings
 
-GitHub repository names cannot reliably use spaces. Use `Stocks-V2` or `stocks-v2` while displaying the project as "Stocks V2" in the UI and README.
+- Framework preset: Other
+- Install command: `npm install`
+- Build command: `npm run check`
+- Output directory: `.`
 
-## Environment Variables
+## Environment variables
 
-Add these when moving out of Demo Mode:
+Add the browser-safe and normal API variables from `.env.example` in Vercel Project Settings:
 
-- `ALPHA_VANTAGE_API_KEY`
-- `COINGECKO_API_KEY`
-- `COINGECKO_DEMO_API_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `APP_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` only for server-side Vercel API routes that need authenticated Supabase writes
+
+Scheduled collection provider keys are configured as Supabase Edge Function secrets, not Vercel Cron secrets.
+
+Optional for normal on-demand server API routes:
+
 - `FINNHUB_API_KEY`
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `DISCORD_WEBHOOK_URL`
+- `COINGECKO_API_KEY`
+- `ALPHA_VANTAGE_API_KEY`
+- `MARKET_DATA_PROVIDER=auto`
+- `NEWS_DATA_PROVIDER=auto`
 
 Never expose service-role keys or provider secrets in frontend JavaScript.
 
-See `docs/API_SETUP.md` for the current market-data setup steps.
+## Cron
 
-## Build Settings
+Do not configure Vercel Cron for this project. Vercel Hobby deployments fail when cron jobs run more than once per day. The five-minute schedule is implemented with Supabase Cron calling the Supabase Edge Function `collect-market-data`.
 
-- Framework preset: Other
-- Build command: leave empty
-- Output directory: `.`
-- Install command: leave empty
+Verify `vercel.json` has no `crons` block before deploying to Vercel Hobby.
 
-The app works without dependency installation. API routes live in `/api`.
+## Serverless function count
+
+Vercel Hobby also limits deployments to 12 Serverless Functions. The app keeps all user-facing API routes behind one catch-all function:
+
+```text
+api/[...path].js
+```
+
+Do not add individual files such as `api/markets.js` or `api/search.js`; add routes to the catch-all router instead.
+
+## Verification
+
+After deployment, open:
+
+- `/api/health`
+- `/api/health/database`
+- `/api/health/providers`
+- `/api/health/cron`
+- `/api/markets`
+
+Then verify in the UI:
+
+- Search returns provider results.
+- Refresh disables while loading and updates freshness labels.
+- Account forms reach Supabase Auth.
+- Watchlists sync after sign-in.
+- Admin actions reject non-admin users.

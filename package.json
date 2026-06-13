@@ -2,10 +2,12 @@
   "name": "stocks-v2",
   "version": "0.1.0",
   "private": true,
-  "description": "Vercel-ready demo-mode financial market research command center.",
+  "description": "Vercel-ready market research command center with provider adapters, Supabase schema, jobs, and demo fallback.",
   "scripts": {
     "start": "node local-server.js",
-    "check": "node --check assets/app.js && node --check assets/data.js && node --check api/status.js && node --check api/search.js && node --check api/asset.js && node --check api/admin/jobs.js"
+    "check": "node --check assets/app.js && node --check assets/auth.js && node --check assets/data.js && node --check assets/live-data.js && node --check 'api/[...path].js' && node --check lib/calculations.js && node --check lib/providerContract.js && node --check lib/repository.js && node --check lib/jobs.js && node --check lib/publicMarketStore.js",
+    "test": "node --test",
+    "setup:supabase": "bash scripts/setup-supabase.sh"
   },
   "keywords": [
     "stocks",

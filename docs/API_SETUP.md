@@ -1,59 +1,58 @@
 # API Setup
 
-Stocks V2 keeps API keys server-side in Vercel environment variables. Do not put keys in `index.html`, `assets/app.js`, or any other frontend file.
+Stocks V2 keeps API keys server-side. Scheduled collection provider keys belong in Supabase Edge Function secrets for `collect-market-data`. Do not put provider keys in `index.html`, `assets/app.js`, or any frontend file.
 
-## Minimum Market Data Setup
+## Providers currently wired
 
-Add these in Vercel:
-
-| Name | Required | Purpose |
+| Provider | Environment variable | Purpose |
 | --- | --- | --- |
-| `ALPHA_VANTAGE_API_KEY` | Yes for stocks/ETFs | Stock, ETF, and index quote support through Alpha Vantage `GLOBAL_QUOTE` |
-| `COINGECKO_API_KEY` | Optional | Crypto quote support through CoinGecko Pro |
-| `COINGECKO_DEMO_API_KEY` | Optional | Alternate CoinGecko key name |
+| Alpha Vantage | `ALPHA_VANTAGE_API_KEY` | Stock/ETF/index search, quotes, and daily adjusted history |
+| CoinGecko | `COINGECKO_API_KEY` | Cryptocurrency quotes. Public CoinGecko fallback works with tighter limits |
+| Finnhub | `FINNHUB_API_KEY` | Market and asset news |
+| Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Auth, Postgres storage, RLS-protected user data, backend writes |
 
-Crypto quotes can use CoinGecko's public endpoint without a key, but a key is better for rate limits.
+Optional variables:
 
-## Optional Future Services
+- `MARKET_DATA_PROVIDER=auto`
+- `NEWS_DATA_PROVIDER=auto`
+- `CRON_SECRET`
+- `APP_URL`
+- `SENTRY_DSN`
 
-| Name | Purpose |
-| --- | --- |
-| `FINNHUB_API_KEY` | Future news, company profile, and market news integration |
-| `SUPABASE_URL` | Future database and auth integration |
-| `SUPABASE_ANON_KEY` | Future browser-safe Supabase auth key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Future server-only database admin key |
-| `OPENAI_API_KEY` | Future AI market brief and structured research reports |
-| `DISCORD_WEBHOOK_URL` | Future optional Discord alerts |
-
-## Vercel Steps
-
-1. Open the Vercel project.
-2. Go to `Settings` -> `Environment Variables`.
-3. Add `ALPHA_VANTAGE_API_KEY` and choose `Production`, `Preview`, and `Development`.
-4. Add `COINGECKO_API_KEY` if you have one.
-5. Save the variables.
-6. Redeploy the latest production deployment, or push another commit to trigger deployment.
-
-## Check It
-
-After deployment, open:
+## Check provider health
 
 ```text
 https://YOUR-VERCEL-DOMAIN/api/status
-```
-
-You should see `Stock market API` as `Configured` when `ALPHA_VANTAGE_API_KEY` is present.
-
-Then open:
-
-```text
+https://YOUR-VERCEL-DOMAIN/api/health/providers
 https://YOUR-VERCEL-DOMAIN/api/markets
 ```
 
-Assets that successfully connected will show:
+Successful connected data uses one of these states:
 
 ```json
-"dataStatus": "Connected data"
+"dataStatus": "Live"
+"dataStatus": "Delayed"
+"dataStatus": "Cached"
+"dataStatus": "Market closed"
 ```
 
-If a provider is missing, rate-limited, or does not support a symbol, that asset falls back to demo/unavailable labels instead of breaking the whole page.
+Fallback states are explicit:
+
+```json
+"dataStatus": "Demo"
+"dataStatus": "Temporarily unavailable"
+```
+
+If a provider is missing, rate-limited, or does not support a symbol, the route returns the most useful cached/demo/unavailable response it can and labels it clearly.
+
+## Scheduled collection secrets
+
+Add these in Supabase Dashboard -> Project Settings -> Edge Functions -> Secrets:
+
+- `CRON_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ALPHA_VANTAGE_API_KEY`
+- `COINGECKO_API_KEY` if used
+
+Vercel Cron is intentionally not used; the five-minute schedule is Supabase Cron -> `collect-market-data`.
