@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Stocks V2 is a demo-mode financial market research command center for stocks, crypto, ETFs, indexes, predictions, alerts, and market education."
+    />
+    <title>Stocks V2 | Market Signal Deck</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#app">Skip to content</a>
+    <div class="app-shell" id="top">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">SV2</div>
+          <div>
+            <strong>Stocks V2</strong>
+            <span>Market Signal Deck</span>
+          </div>
+        </div>
+        <nav id="side-nav"></nav>
+        <section class="status-card" aria-label="Data status">
+          <span class="badge warning">Demo Mode</span>
+          <p>Sample data only. Connect market providers in Vercel environment variables for live or delayed data.</p>
+        </section>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="icon-button mobile-only" id="menu-toggle" aria-label="Open navigation">Menu</button>
+          <form class="search" id="asset-search" role="search">
+            <label class="sr-only" for="search-input">Search ticker or asset</label>
+            <input id="search-input" autocomplete="off" placeholder="Search AAPL, BTC-USD, SPY..." />
+            <button type="submit">Search</button>
+            <div class="suggestions" id="suggestions" role="listbox"></div>
+          </form>
+          <div class="top-actions">
+            <button class="ghost-button" id="refresh-button" type="button">Refresh</button>
+            <label class="toggle">
+              <input id="beginner-toggle" type="checkbox" checked />
+              <span>Beginner</span>
+            </label>
+            <label class="toggle">
+              <input id="compact-toggle" type="checkbox" />
+              <span>Compact</span>
+            </label>
+            <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">Theme</button>
+          </div>
+        </header>
+
+        <section class="ticker-tape" aria-label="Demo market ticker" id="ticker-tape"></section>
+
+        <div class="safety-strip" role="note">
+          Educational market research only. Nothing here is financial advice. Predictions are estimates, not guarantees.
+          Demo values may be delayed, cached, estimated, or unavailable.
+        </div>
+
+        <div id="app" tabindex="-1"></div>
+      </main>
+    </div>
+
+    <script src="./assets/data.js"></script>
+    <script src="./assets/app.js"></script>
+  </body>
+</html>
