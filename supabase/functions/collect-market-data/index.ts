@@ -57,6 +57,14 @@ function requiredSecret(name: string) {
   return value;
 }
 
+function requiredAnySecret(names: string[]) {
+  for (const name of names) {
+    const value = Deno.env.get(name);
+    if (value) return value;
+  }
+  throw new Error(`${names.join(" or ")} secret is required`);
+}
+
 function assertCronSecret(request: Request) {
   const expected = requiredSecret("CRON_SECRET");
   const supplied = request.headers.get("x-cron-secret") || request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
@@ -137,7 +145,7 @@ async function fetchJson(url: string, options: RequestInit & { retries?: number;
 
 async function supabaseRest(path: string, options: RequestInit = {}) {
   const supabaseUrl = requiredSecret("SUPABASE_URL").replace(/\/$/, "");
-  const serviceRole = requiredSecret("SUPABASE_SERVICE_ROLE_KEY");
+  const serviceRole = requiredAnySecret(["SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"]);
   const response = await fetch(`${supabaseUrl}/rest/v1/${path.replace(/^\//, "")}`, {
     ...options,
     headers: {

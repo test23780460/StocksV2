@@ -44,13 +44,18 @@ Set these in your terminal before running the script:
 ```bash
 export SUPABASE_PROJECT_REF="pxhkotgxqxggukiswzxk"
 export SUPABASE_URL="https://pxhkotgxqxggukiswzxk.supabase.co"
+export NEXT_PUBLIC_SUPABASE_URL="https://pxhkotgxqxggukiswzxk.supabase.co"
+export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="REPLACE_WITH_SUPABASE_PUBLISHABLE_KEY"
 export CRON_SECRET="REPLACE_WITH_LONG_RANDOM_SECRET"
 export ALPHA_VANTAGE_API_KEY="REPLACE_WITH_ALPHA_VANTAGE_KEY"
 export FINNHUB_API_KEY="REPLACE_WITH_FINNHUB_KEY"
 export POLYGON_API_KEY="REPLACE_WITH_POLYGON_OR_MASSIVE_KEY"
 
 # Required if the Edge Function does not already receive default Supabase secrets.
-export SUPABASE_SERVICE_ROLE_KEY="REPLACE_WITH_SERVICE_ROLE_KEY"
+# The app accepts either the older service-role key or Supabase's newer secret key.
+export SUPABASE_SECRET_KEY="REPLACE_WITH_SUPABASE_SECRET_KEY"
+# or:
+# export SUPABASE_SERVICE_ROLE_KEY="REPLACE_WITH_SERVICE_ROLE_KEY"
 
 # Optional but recommended so the script can configure Vault and database settings.
 export SUPABASE_DB_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@db.pxhkotgxqxggukiswzxk.supabase.co:5432/postgres"
@@ -90,7 +95,7 @@ bash scripts/setup-supabase.sh
    - Add `FINNHUB_API_KEY`.
    - Add `POLYGON_API_KEY` or `MASSIVE_API_KEY` if used by future adapters.
    - Add `SUPABASE_URL`.
-   - Add `SUPABASE_SERVICE_ROLE_KEY` if not automatically present.
+   - Add `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY` if not automatically present.
 4. Dashboard -> Database -> Extensions:
    - Enable `pg_cron`.
    - Enable `pg_net`.

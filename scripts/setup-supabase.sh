@@ -21,6 +21,10 @@ fi
 
 need CRON_SECRET
 need ALPHA_VANTAGE_API_KEY
+if [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" && -z "${SUPABASE_SECRET_KEY:-}" ]]; then
+  echo "Missing required environment variable: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY" >&2
+  exit 1
+fi
 
 echo "Linking Supabase project ${PROJECT_REF}..."
 supabase link --project-ref "${PROJECT_REF}"
@@ -44,6 +48,7 @@ chmod 600 "${tmp_env}"
   [[ -n "${MASSIVE_API_KEY:-}" ]] && echo "MASSIVE_API_KEY=${MASSIVE_API_KEY}"
   [[ -n "${SUPABASE_URL:-}" ]] && echo "SUPABASE_URL=${SUPABASE_URL}"
   [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]] && echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}"
+  [[ -n "${SUPABASE_SECRET_KEY:-}" ]] && echo "SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY}"
 } > "${tmp_env}"
 
 echo "Setting Edge Function secrets from environment variables..."

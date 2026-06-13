@@ -39,7 +39,9 @@ Copy `.env.example` and configure only providers you use:
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_SECRET_KEY=
 MARKET_DATA_PROVIDER=auto
 NEWS_DATA_PROVIDER=auto
 ALPHA_VANTAGE_API_KEY=
@@ -51,7 +53,7 @@ APP_URL=
 SENTRY_DSN=
 ```
 
-Private provider keys used by scheduled collection must be stored as Supabase Edge Function secrets. Do not put provider keys in frontend code. Vercel can deploy the frontend and normal API routes without Vercel Cron.
+Private provider keys used by scheduled collection must be stored as Supabase Edge Function secrets. Do not put provider keys in frontend code. Vercel can deploy the frontend and normal API routes without Vercel Cron. The app supports both Supabase's older `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` names and newer `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` names.
 
 ## Supabase setup
 
@@ -267,7 +269,7 @@ The same setup is captured in `supabase/migrations/20260613154000_cron_setup.sql
    - Add:
      - `CRON_SECRET`
      - `SUPABASE_URL`
-     - `SUPABASE_SERVICE_ROLE_KEY`
+     - `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
      - `ALPHA_VANTAGE_API_KEY`
      - `COINGECKO_API_KEY` if used
      - `FINNHUB_API_KEY` if later used by the function
