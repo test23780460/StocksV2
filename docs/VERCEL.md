@@ -8,18 +8,21 @@ GitHub repository names cannot reliably use spaces. Use `Stocks-V2` or `stocks-v
 
 ## Environment Variables
 
-Add these later when moving out of Demo Mode:
+Add these when moving out of Demo Mode:
 
+- `ALPHA_VANTAGE_API_KEY`
+- `COINGECKO_API_KEY`
+- `COINGECKO_DEMO_API_KEY`
+- `FINNHUB_API_KEY`
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `STOCK_PROVIDER_KEY`
-- `CRYPTO_PROVIDER_KEY`
-- `NEWS_PROVIDER_KEY`
 - `OPENAI_API_KEY`
 - `DISCORD_WEBHOOK_URL`
 
 Never expose service-role keys or provider secrets in frontend JavaScript.
+
+See `docs/API_SETUP.md` for the current market-data setup steps.
 
 ## Build Settings
 
