@@ -58,7 +58,8 @@ async function serveApi(req, res, url) {
   const apiPath = url.pathname.replace(/^\/api\/?/, "");
   const candidates = [
     path.join(root, "api", `${apiPath}.js`),
-    path.join(root, "api", apiPath, "index.js")
+    path.join(root, "api", apiPath, "index.js"),
+    path.join(root, "api", "[...path].js")
   ];
   const filePath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!filePath || !filePath.startsWith(path.join(root, "api"))) {

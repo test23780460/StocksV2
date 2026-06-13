@@ -36,6 +36,16 @@ Do not configure Vercel Cron for this project. Vercel Hobby deployments fail whe
 
 Verify `vercel.json` has no `crons` block before deploying to Vercel Hobby.
 
+## Serverless function count
+
+Vercel Hobby also limits deployments to 12 Serverless Functions. The app keeps all user-facing API routes behind one catch-all function:
+
+```text
+api/[...path].js
+```
+
+Do not add individual files such as `api/markets.js` or `api/search.js`; add routes to the catch-all router instead.
+
 ## Verification
 
 After deployment, open:

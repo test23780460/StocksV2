@@ -7,7 +7,7 @@ Educational market research only. Nothing on this platform is financial advice. 
 ## Architecture
 
 - Static HTML/CSS/JS frontend hosted by Vercel.
-- Vercel serverless routes under `/api` for normal user-facing routes, auth-backed mutations, health checks, news, predictions, and admin actions.
+- A single Vercel catch-all serverless route, `api/[...path].js`, handles normal user-facing `/api/*` routes, auth-backed mutations, health checks, news, predictions, and admin actions. This keeps the deployment under the Vercel Hobby 12-function limit.
 - Supabase Edge Function `collect-market-data` performs scheduled market-data collection; Vercel Cron is intentionally not used so the project remains compatible with Vercel Hobby.
 - Provider contract in `lib/providerContract.js` with methods for search, quote, batch quote, historical bars, movers, market status, company profile, technical data, news, and crypto quotes.
 - Supabase Postgres schema and RLS in `supabase/migrations`.

@@ -1,10 +1,27 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
+
+function listJsFiles(directory) {
+  const output = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) output.push(...listJsFiles(fullPath));
+    else if (entry.name.endsWith(".js")) output.push(fullPath);
+  }
+  return output;
+}
 
 test("Vercel Hobby config does not include cron jobs", () => {
   const vercel = JSON.parse(fs.readFileSync("vercel.json", "utf8"));
   assert.equal(Object.prototype.hasOwnProperty.call(vercel, "crons"), false);
+});
+
+test("Vercel Hobby API stays under serverless function limit", () => {
+  const apiFiles = listJsFiles("api");
+  assert.deepEqual(apiFiles, [path.join("api", "[...path].js")]);
+  assert.ok(apiFiles.length <= 12);
 });
 
 test("Supabase scheduled collection targets collect-market-data", () => {
