@@ -13,10 +13,11 @@ It is intentionally in **Demo Mode** until real market-data providers, Supabase,
 - Canvas charts and Market Mood gauge
 - Local watchlists and alert workflow using browser storage
 - Demo prediction ranges with no guaranteed outcomes
-- Vercel `/api` routes for status, search, asset lookup, and admin job logs
+- Vercel `/api` routes for status, search, asset lookup, markets, and admin job logs
 - Provider abstraction scaffold in `lib/providerContract.js`
 - Supabase/PostgreSQL starter schema with RLS policy examples
 - Vercel deployment notes in `docs/VERCEL.md`
+- API setup notes in `docs/API_SETUP.md`
 
 ## Run Locally
 
@@ -40,6 +41,7 @@ You can also open `index.html` directly in a browser for the frontend-only previ
 2. Add these files to the repo.
 3. Import the repo in Vercel.
 4. Use the settings in `docs/VERCEL.md`.
+5. Add market-data keys using `docs/API_SETUP.md`.
 
 ## Financial Safety
 
