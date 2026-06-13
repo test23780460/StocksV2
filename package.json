@@ -1,0 +1,17 @@
+{
+  "name": "stocks-v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vercel-ready demo-mode financial market research command center.",
+  "scripts": {
+    "start": "node local-server.js",
+    "check": "node --check assets/app.js && node --check assets/data.js && node --check api/status.js && node --check api/search.js && node --check api/asset.js && node --check api/admin/jobs.js"
+  },
+  "keywords": [
+    "stocks",
+    "crypto",
+    "market-research",
+    "vercel"
+  ],
+  "license": "UNLICENSED"
+}
