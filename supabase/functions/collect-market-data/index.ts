@@ -26,6 +26,12 @@ type Quote = {
   dataStatus: "Live" | "Delayed" | "Cached" | "Demo" | "Temporarily unavailable" | "Market closed";
 };
 
+type RunOptions = {
+  force?: boolean;
+  forceStocks?: boolean;
+  forceCrypto?: boolean;
+};
+
 const CRYPTO_IDS: Record<string, string> = {
   "BTC-USD": "bitcoin",
   "ETH-USD": "ethereum",
@@ -141,6 +147,19 @@ async function fetchJson(url: string, options: RequestInit & { retries?: number;
     await delay(250 * Math.pow(2, attempt));
   }
   throw lastError || new Error("Provider request failed");
+}
+
+async function parseRunOptions(request: Request): Promise<RunOptions> {
+  const url = new URL(request.url);
+  let body: Record<string, unknown> = {};
+  if (request.method !== "GET") {
+    body = await request.json().catch(() => ({}));
+  }
+  return {
+    force: url.searchParams.get("force") === "1" || body.force === true,
+    forceStocks: url.searchParams.get("forceStocks") === "1" || body.forceStocks === true,
+    forceCrypto: url.searchParams.get("forceCrypto") === "1" || body.forceCrypto === true,
+  };
 }
 
 async function supabaseRest(path: string, options: RequestInit = {}) {
@@ -374,8 +393,9 @@ Deno.serve(async (request) => {
   let apiRequests = 0;
 
   try {
-    const marketOpen = isUsStockMarketOpen();
-    const updateCrypto = cryptoUpdateDue();
+    const options = await parseRunOptions(request);
+    const marketOpen = options.force || options.forceStocks || isUsStockMarketOpen();
+    const updateCrypto = options.force || options.forceCrypto || cryptoUpdateDue();
     const assets = await loadTrackedAssets();
     const stockAssets = marketOpen
       ? assets.filter((asset) => ["stock", "etf", "index"].includes(asset.asset_type)).slice(0, MAX_SYMBOLS_PER_RUN)
@@ -432,6 +452,7 @@ Deno.serve(async (request) => {
         bucket: fiveMinuteBucket(),
         marketOpen,
         cryptoUpdateDue: updateCrypto,
+        forcedRun: options.force || options.forceStocks || options.forceCrypto,
         runtimeMs: Date.now() - started,
         idempotency: "market_quotes unique(asset_id,timestamp,provider), market_snapshots unique(timestamp)",
       },
@@ -444,6 +465,7 @@ Deno.serve(async (request) => {
       rowsInserted,
       apiRequests,
       bucket: fiveMinuteBucket(),
+      forcedRun: options.force || options.forceStocks || options.forceCrypto,
       runtimeMs: Date.now() - started,
     });
   } catch (error) {

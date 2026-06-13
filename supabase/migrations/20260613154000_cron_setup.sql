@@ -12,20 +12,21 @@ create extension if not exists supabase_vault with schema vault;
 -- 2. Store CRON_SECRET in Supabase Vault using the same value configured as an
 --    Edge Function secret:
 --    select vault.create_secret('YOUR_LONG_RANDOM_SECRET', 'CRON_SECRET');
--- 3. Store the function URL in database settings:
---    alter database postgres set app.settings.collect_market_data_url =
---      'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data';
---
 -- The Edge Function is idempotent. It writes quotes with the five-minute bucket
 -- timestamp and relies on unique(asset_id, timestamp, provider), plus
 -- market_snapshots unique(timestamp), to prevent duplicate records.
+select cron.unschedule('stocks-v2-collect-market-data')
+where exists (
+  select 1 from cron.job where jobname = 'stocks-v2-collect-market-data'
+);
+
 select cron.schedule(
   'stocks-v2-collect-market-data',
   '*/5 * * * *',
   $$
   select
     net.http_post(
-      url := current_setting('app.settings.collect_market_data_url', true),
+      url := 'https://pxhkotgxqxggukiswzxk.functions.supabase.co/collect-market-data',
       headers := jsonb_build_object(
         'content-type', 'application/json',
         'x-cron-secret', (

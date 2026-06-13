@@ -158,15 +158,17 @@ Schedule with Supabase Cron:
 ```sql
 select vault.create_secret('YOUR_LONG_RANDOM_SECRET', 'CRON_SECRET');
 
-alter database postgres set app.settings.collect_market_data_url =
-  'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data';
+select cron.unschedule('stocks-v2-collect-market-data')
+where exists (
+  select 1 from cron.job where jobname = 'stocks-v2-collect-market-data'
+);
 
 select cron.schedule(
   'stocks-v2-collect-market-data',
   '*/5 * * * *',
   $$
   select net.http_post(
-    url := current_setting('app.settings.collect_market_data_url', true),
+    url := 'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data',
     headers := jsonb_build_object(
       'content-type', 'application/json',
       'x-cron-secret', (
@@ -281,9 +283,7 @@ The same setup is captured in `supabase/migrations/20260613154000_cron_setup.sql
    - Dashboard -> SQL Editor.
    - Add the same `CRON_SECRET` to Vault:
      `select vault.create_secret('YOUR_LONG_RANDOM_SECRET', 'CRON_SECRET');`
-   - Set the function URL:
-     `alter database postgres set app.settings.collect_market_data_url = 'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data';`
-   - Run `supabase/migrations/20260613154000_cron_setup.sql`, or run the schedule SQL shown above.
+   - Run `supabase/migrations/20260613154000_cron_setup.sql`, or run the schedule SQL shown above with your project ref in the function URL.
 5. Test manually:
    - Dashboard -> Edge Functions -> `collect-market-data` -> Invoke, or run the `curl` command above with `x-cron-secret`.
    - A successful test returns compact JSON such as `status`, `processed`, `failed`, `rowsInserted`, and `bucket`.

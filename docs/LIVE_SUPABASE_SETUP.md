@@ -35,7 +35,7 @@ The script can:
 2. Push migrations.
 3. Set Edge Function secrets from local environment variables.
 4. Deploy `collect-market-data`.
-5. Optionally configure Vault and `collect_market_data_url` if `SUPABASE_DB_URL` is provided.
+5. Configure Vault and reschedule the five-minute Supabase Cron job.
 
 ## Required local environment variables
 
@@ -57,13 +57,7 @@ export SUPABASE_SECRET_KEY="REPLACE_WITH_SUPABASE_SECRET_KEY"
 # or:
 # export SUPABASE_SERVICE_ROLE_KEY="REPLACE_WITH_SERVICE_ROLE_KEY"
 
-# Optional but recommended so the script can configure Vault and database settings.
-export SUPABASE_DB_URL="postgresql://postgres:YOUR_DATABASE_PASSWORD@db.pxhkotgxqxggukiswzxk.supabase.co:5432/postgres"
-```
-
-CoinGecko is optional:
-
-```bash
+# CoinGecko is optional.
 export COINGECKO_API_KEY="REPLACE_WITH_COINGECKO_KEY"
 ```
 
@@ -103,9 +97,6 @@ bash scripts/setup-supabase.sh
 5. Dashboard -> SQL Editor:
    ```sql
    select vault.create_secret('REPLACE_WITH_THE_SAME_CRON_SECRET', 'CRON_SECRET');
-
-   alter database postgres set app.settings.collect_market_data_url =
-     'https://pxhkotgxqxggukiswzxk.functions.supabase.co/collect-market-data';
    ```
 6. Dashboard -> SQL Editor:
    - Run `supabase/migrations/20260613154000_cron_setup.sql`.
