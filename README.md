@@ -7,7 +7,8 @@ Educational market research only. Nothing on this platform is financial advice. 
 ## Architecture
 
 - Static HTML/CSS/JS frontend hosted by Vercel.
-- Vercel serverless routes under `/api` for provider calls, auth-backed mutations, jobs, health checks, news, predictions, and admin actions.
+- Vercel serverless routes under `/api` for normal user-facing routes, auth-backed mutations, health checks, news, predictions, and admin actions.
+- Supabase Edge Function `collect-market-data` performs scheduled market-data collection; Vercel Cron is intentionally not used so the project remains compatible with Vercel Hobby.
 - Provider contract in `lib/providerContract.js` with methods for search, quote, batch quote, historical bars, movers, market status, company profile, technical data, news, and crypto quotes.
 - Supabase Postgres schema and RLS in `supabase/migrations`.
 - Supabase Auth for email/password accounts and secure sessions.
@@ -50,14 +51,14 @@ APP_URL=
 SENTRY_DSN=
 ```
 
-Private provider keys and `SUPABASE_SERVICE_ROLE_KEY` must exist only in server environments such as Vercel or Supabase Edge Function secrets.
+Private provider keys used by scheduled collection must be stored as Supabase Edge Function secrets. Do not put provider keys in frontend code. Vercel can deploy the frontend and normal API routes without Vercel Cron.
 
 ## Supabase setup
 
 1. Create a Supabase project.
 2. Copy the project URL into `NEXT_PUBLIC_SUPABASE_URL`.
 3. Copy the anon public key into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Copy the service-role key into `SUPABASE_SERVICE_ROLE_KEY` in Vercel only. Do not expose it in browser code.
+4. Copy the service-role key into `SUPABASE_SERVICE_ROLE_KEY` for server-only contexts. For scheduled collection, add it as a Supabase Edge Function secret. Do not expose it in browser code.
 5. Run migrations:
    ```bash
    supabase db push
@@ -110,15 +111,68 @@ The job requests daily adjusted bars, validates rows, upserts with `asset_id + i
 
 ## Five-minute ingestion
 
-Vercel Cron can call:
+Vercel Cron is intentionally not used. Vercel Hobby does not permit cron jobs more frequent than once per day, so the five-minute market collection schedule runs through Supabase Cron and the Supabase Edge Function named `collect-market-data`.
 
-```text
-POST /api/ingest/quotes
-Header: x-cron-secret: CRON_SECRET
-Schedule: */5 * * * *
+The Edge Function:
+
+- Requires `CRON_SECRET` through `x-cron-secret` or `Authorization: Bearer`.
+- Checks approximate U.S. stock-market hours.
+- Exits quickly when the stock market is closed unless a crypto update is due.
+- Fetches assets in batches.
+- Writes `market_quotes` and `market_snapshots` directly to Supabase.
+- Uses five-minute bucket timestamps and unique constraints to avoid duplicate market records.
+- Logs each run in `data_ingestion_runs`.
+- Uses cautious retries and request budgets to fit Supabase Free Plan execution limits.
+- Returns a small JSON response.
+
+Deploy and test:
+
+```bash
+supabase functions deploy collect-market-data --no-verify-jwt
+supabase secrets set \
+  CRON_SECRET="YOUR_LONG_RANDOM_SECRET" \
+  SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co" \
+  SUPABASE_SERVICE_ROLE_KEY="YOUR_SERVICE_ROLE_KEY" \
+  ALPHA_VANTAGE_API_KEY="YOUR_ALPHA_VANTAGE_KEY" \
+  COINGECKO_API_KEY="YOUR_COINGECKO_KEY"
+
+curl -X POST "https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data" \
+  -H "content-type: application/json" \
+  -H "x-cron-secret: YOUR_LONG_RANDOM_SECRET" \
+  -d '{}'
 ```
 
-Supabase Cron alternative is included in `supabase/migrations/20260613154000_cron_setup.sql` and the Edge Function scaffold is in `supabase/functions/market-ingest`.
+Schedule with Supabase Cron:
+
+```sql
+select vault.create_secret('YOUR_LONG_RANDOM_SECRET', 'CRON_SECRET');
+
+alter database postgres set app.settings.collect_market_data_url =
+  'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data';
+
+select cron.schedule(
+  'stocks-v2-collect-market-data',
+  '*/5 * * * *',
+  $$
+  select net.http_post(
+    url := current_setting('app.settings.collect_market_data_url', true),
+    headers := jsonb_build_object(
+      'content-type', 'application/json',
+      'x-cron-secret', (
+        select decrypted_secret
+        from vault.decrypted_secrets
+        where name = 'CRON_SECRET'
+        limit 1
+      )
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 25000
+  );
+  $$
+);
+```
+
+The same setup is captured in `supabase/migrations/20260613154000_cron_setup.sql`.
 
 ## Predictions and evaluation
 
@@ -142,9 +196,9 @@ Supabase Cron alternative is included in `supabase/migrations/20260613154000_cro
 4. Output directory: `.`.
 5. Add environment variables from `.env.example`.
 6. Set `APP_URL` to the production Vercel URL.
-7. Add a Vercel Cron for `/api/ingest/quotes` every five minutes if your plan supports it, or use Supabase Cron.
+7. Do not configure Vercel Cron. Scheduled collection runs in Supabase.
 8. Redeploy.
-9. Verify:
+9. Verify that `vercel.json` has no `crons` block, then check:
    - `/api/health`
    - `/api/health/database`
    - `/api/health/providers`
@@ -189,3 +243,40 @@ Supabase Cron alternative is included in `supabase/migrations/20260613154000_cro
 - If admin actions fail with 401/403, sign in as a profile with `role='admin'` or use `x-cron-secret`.
 - If provider calls fail, inspect `/api/health/providers` and provider rate-limit dashboards.
 - If migrations fail, run them in order and confirm `pgcrypto`, `pg_cron`, and `pg_net` availability.
+
+## Supabase Dashboard steps for scheduled collection
+
+1. Deploy Edge Function:
+   - Open Supabase Dashboard -> Edge Functions.
+   - Choose Deploy a new function or use CLI:
+     `supabase functions deploy collect-market-data --no-verify-jwt`.
+   - Confirm the function URL is:
+     `https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data`.
+2. Add Edge Function secrets:
+   - Dashboard -> Project Settings -> Edge Functions -> Secrets.
+   - Add:
+     - `CRON_SECRET`
+     - `SUPABASE_URL`
+     - `SUPABASE_SERVICE_ROLE_KEY`
+     - `ALPHA_VANTAGE_API_KEY`
+     - `COINGECKO_API_KEY` if used
+     - `FINNHUB_API_KEY` if later used by the function
+   - Provider API keys belong here, not in frontend code.
+3. Enable Supabase Cron:
+   - Dashboard -> Database -> Extensions.
+   - Enable `pg_cron` and `pg_net`.
+4. Create the five-minute schedule:
+   - Dashboard -> SQL Editor.
+   - Add the same `CRON_SECRET` to Vault:
+     `select vault.create_secret('YOUR_LONG_RANDOM_SECRET', 'CRON_SECRET');`
+   - Set the function URL:
+     `alter database postgres set app.settings.collect_market_data_url = 'https://YOUR_PROJECT_REF.functions.supabase.co/collect-market-data';`
+   - Run `supabase/migrations/20260613154000_cron_setup.sql`, or run the schedule SQL shown above.
+5. Test manually:
+   - Dashboard -> Edge Functions -> `collect-market-data` -> Invoke, or run the `curl` command above with `x-cron-secret`.
+   - A successful test returns compact JSON such as `status`, `processed`, `failed`, `rowsInserted`, and `bucket`.
+6. View execution logs:
+   - Dashboard -> Edge Functions -> `collect-market-data` -> Logs.
+   - Database logs are in `data_ingestion_runs`.
+
+Do not claim the scheduled job is working until this manual invocation and the Edge Function logs have been verified in your Supabase project.

@@ -21,12 +21,6 @@
       ]
     }
   ],
-  "crons": [
-    {
-      "path": "/api/ingest/quotes",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/app/:path*",

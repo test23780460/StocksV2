@@ -1,6 +1,6 @@
 # API Setup
 
-Stocks V2 keeps API keys server-side in Vercel environment variables. Do not put provider keys in `index.html`, `assets/app.js`, or any frontend file.
+Stocks V2 keeps API keys server-side. Scheduled collection provider keys belong in Supabase Edge Function secrets for `collect-market-data`. Do not put provider keys in `index.html`, `assets/app.js`, or any frontend file.
 
 ## Providers currently wired
 
@@ -44,3 +44,15 @@ Fallback states are explicit:
 ```
 
 If a provider is missing, rate-limited, or does not support a symbol, the route returns the most useful cached/demo/unavailable response it can and labels it clearly.
+
+## Scheduled collection secrets
+
+Add these in Supabase Dashboard -> Project Settings -> Edge Functions -> Secrets:
+
+- `CRON_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ALPHA_VANTAGE_API_KEY`
+- `COINGECKO_API_KEY` if used
+
+Vercel Cron is intentionally not used; the five-minute schedule is Supabase Cron -> `collect-market-data`.

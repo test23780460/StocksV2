@@ -1,6 +1,6 @@
 # Vercel Deployment Notes
 
-This project deploys as a static app plus Vercel serverless API routes.
+This project deploys as a static app plus normal user-facing Vercel serverless API routes. Scheduled market-data collection is not run by Vercel Cron so the project remains compatible with Vercel Hobby.
 
 ## Build settings
 
@@ -11,19 +11,20 @@ This project deploys as a static app plus Vercel serverless API routes.
 
 ## Environment variables
 
-Add the variables from `.env.example` in Vercel Project Settings. Required for production live mode:
+Add the browser-safe and normal API variables from `.env.example` in Vercel Project Settings:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `CRON_SECRET`
 - `APP_URL`
-- At least one market provider key, usually `ALPHA_VANTAGE_API_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` only for server-side Vercel API routes that need authenticated Supabase writes
 
-Recommended:
+Scheduled collection provider keys are configured as Supabase Edge Function secrets, not Vercel Cron secrets.
+
+Optional for normal on-demand server API routes:
 
 - `FINNHUB_API_KEY`
 - `COINGECKO_API_KEY`
+- `ALPHA_VANTAGE_API_KEY`
 - `MARKET_DATA_PROVIDER=auto`
 - `NEWS_DATA_PROVIDER=auto`
 
@@ -31,16 +32,9 @@ Never expose service-role keys or provider secrets in frontend JavaScript.
 
 ## Cron
 
-If your Vercel plan supports five-minute cron jobs, configure:
+Do not configure Vercel Cron for this project. Vercel Hobby deployments fail when cron jobs run more than once per day. The five-minute schedule is implemented with Supabase Cron calling the Supabase Edge Function `collect-market-data`.
 
-```json
-{
-  "path": "/api/ingest/quotes",
-  "schedule": "*/5 * * * *"
-}
-```
-
-Set the `x-cron-secret` header to `CRON_SECRET` if using an external scheduler. For Vercel Cron without custom headers, prefer the Supabase Cron/Edge Function path documented in the README.
+Verify `vercel.json` has no `crons` block before deploying to Vercel Hobby.
 
 ## Verification
 
